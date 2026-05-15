@@ -1,0 +1,9 @@
+{
+  "name": "asymmetric-code",
+  "description": "Implement, debug, refactor, or refine code using an asymmetric junior-review loop before finalizing.",
+  "version": "0.1.0",
+  "author": {
+    "name": "Arunabh Ghosh"
+  },
+  "license": "MIT"
+}
