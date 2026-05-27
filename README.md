@@ -1,4 +1,4 @@
-# Asymmetric Code
+# Asymmetric Review
 
 A Claude Code plugin that runs a bounded asymmetric review loop: the main model implements, a read-only junior reviewer on `sonnet` asks assumption-revealing questions, and the main model adjudicates/refines for up to 5 rounds.
 
@@ -22,14 +22,21 @@ The junior reviewer runs on `sonnet` with only `Read`, `Grep`, and `Glob` tools.
 
 ## Installation
 
-Load the plugin locally by pointing Claude Code at the plugin directory.
+Install from the GitHub marketplace:
+
+```
+/plugin marketplace add arunabh98/asymmetric-review
+/plugin install asymmetric-review@asymmetric-review
+```
+
+For local development, load the plugin by pointing Claude Code at this repository.
 
 ```bash
 # From this repository root:
 claude --plugin-dir .
 
 # From the parent directory:
-claude --plugin-dir ./asymmetric-code
+claude --plugin-dir ./asymmetric-review
 ```
 
 ## Usage
@@ -37,19 +44,19 @@ claude --plugin-dir ./asymmetric-code
 Inside Claude Code, run:
 
 ```
-/asymmetric-code:ship implement user profile editing with tests
+/asymmetric-review:ship implement user profile editing with tests
 ```
 
-The `$ARGUMENTS` after `/asymmetric-code:ship` can be any coding task:
+The `$ARGUMENTS` after `/asymmetric-review:ship` can be any coding task:
 
 ```
-/asymmetric-code:ship fix the off-by-one error in pagination
-/asymmetric-code:ship refactor the auth middleware to use async/await
-/asymmetric-code:ship debug why the search endpoint returns 500 on empty query
-/asymmetric-code:ship refine my current uncommitted changes and add missing edge-case tests
+/asymmetric-review:ship fix the off-by-one error in pagination
+/asymmetric-review:ship refactor the auth middleware to use async/await
+/asymmetric-review:ship debug why the search endpoint returns 500 on empty query
+/asymmetric-review:ship refine my current uncommitted changes and add missing edge-case tests
 ```
 
-If you run `/asymmetric-code:ship` with no arguments, the skill will infer the task from recent conversation and state the inferred task before editing. In a fresh session, or whenever the task is not clear, it should ask instead of guessing.
+If you run `/asymmetric-review:ship` with no arguments, the skill will infer the task from recent conversation and state the inferred task before editing. In a fresh session, or whenever the task is not clear, it should ask instead of guessing.
 
 ## Operational notes
 
@@ -63,21 +70,24 @@ Check commands may create routine generated artifacts. The workflow uses `git st
 
 After launching Claude Code with `--plugin-dir`:
 
-- `/asymmetric-code:ship` should appear as a plugin skill (tab-complete or type it).
-- `/agents` should list `junior-assumption-reviewer`, typically referenced from the plugin as `asymmetric-code:junior-assumption-reviewer`.
+- `/asymmetric-review:ship` should appear as a plugin skill (tab-complete or type it).
+- `/agents` should list `junior-assumption-reviewer`, typically referenced from the plugin as `asymmetric-review:junior-assumption-reviewer`.
 - `/reload-plugins` picks up edits to plugin files during development.
 
 ## Structure
 
 ```
-asymmetric-code/
+asymmetric-review/
   .claude-plugin/
     plugin.json            # Plugin metadata
+    marketplace.json       # Marketplace catalog for GitHub installs
   skills/
     ship/
-      SKILL.md             # The /asymmetric-code:ship workflow
+      SKILL.md             # The /asymmetric-review:ship workflow
   agents/
     junior-assumption-reviewer.md   # Read-only junior reviewer subagent
+  .gitignore
+  LICENSE
   README.md
 ```
 

@@ -1,0 +1,28 @@
+{
+  "$schema": "https://json.schemastore.org/claude-code-marketplace.json",
+  "name": "asymmetric-review",
+  "description": "Marketplace for the Asymmetric Review Claude Code plugin.",
+  "owner": {
+    "name": "Arunabh Ghosh"
+  },
+  "plugins": [
+    {
+      "name": "asymmetric-review",
+      "source": "./",
+      "description": "Implement, debug, refactor, or refine code using an asymmetric review loop before finalizing.",
+      "author": {
+        "name": "Arunabh Ghosh"
+      },
+      "homepage": "https://github.com/arunabh98/asymmetric-review",
+      "repository": "https://github.com/arunabh98/asymmetric-review",
+      "license": "MIT",
+      "keywords": [
+        "claude-code",
+        "code-review",
+        "coding-agent",
+        "quality",
+        "workflow"
+      ]
+    }
+  ]
+}

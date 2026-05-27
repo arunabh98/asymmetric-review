@@ -1,9 +1,9 @@
 ---
-description: Implement, debug, refactor, or refine code using an asymmetric junior-review loop before finalizing.
+description: Implement, debug, refactor, or refine code using an asymmetric review loop before finalizing.
 disable-model-invocation: true
 ---
 
-# Asymmetric Code Implementation
+# Asymmetric Review Implementation
 
 User request:
 
@@ -65,7 +65,7 @@ Track across the loop:
 
 ### 4a. Invoke junior reviewer
 
-Spawn a fresh `asymmetric-code:junior-assumption-reviewer` subagent (if the runtime does not accept the scoped form, fall back to the bare `junior-assumption-reviewer`). Wait for its result before adjudicating. Pass:
+Spawn a fresh `asymmetric-review:junior-assumption-reviewer` subagent (if the runtime does not accept the scoped form, fall back to the bare `junior-assumption-reviewer`). Wait for its result before adjudicating. Pass:
 - the original user request,
 - a concise implementation summary,
 - the current diff, including staged/unstaged changes and any new or untracked files relevant to the task, excluding routine generated artifacts from checks unless directly relevant (the junior cannot run `git diff` or `git status` — it only has `Read`, `Grep`, `Glob` — so surface untracked files explicitly, by content or by file path the junior can `Read`),
