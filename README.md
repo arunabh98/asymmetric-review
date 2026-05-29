@@ -20,6 +20,10 @@ User request
 
 The junior reviewer runs on `sonnet` with only `Read`, `Grep`, and `Glob` tools. It cannot modify files. Its role is to surface hidden assumptions, not to prescribe solutions.
 
+## Main session model
+
+Use Opus for the main session. The junior is pinned to `sonnet`, so a Sonnet main session collapses the asymmetry into Sonnet reviewing Sonnet.
+
 ## Installation
 
 Install from the GitHub marketplace:
