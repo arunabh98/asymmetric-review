@@ -1,6 +1,6 @@
 # Asymmetric Review
 
-A Claude Code plugin that runs a bounded asymmetric review loop: the main model implements, a read-only junior reviewer on `sonnet` asks assumption-revealing questions, and the main model adjudicates/refines for up to 5 rounds.
+A Claude Code plugin that runs a bounded asymmetric review loop: the main model implements, a read-only junior reviewer on `sonnet` asks assumption-revealing questions, and the main model adjudicates/refines for up to 4 rounds.
 
 ## How it works
 
@@ -10,11 +10,11 @@ User request
   → Run checks
   → Fix new failures caused by this work, if any
   → If change is trivial: skip junior review
-  → Otherwise [Loop, up to 5 rounds]
+  → Otherwise [Loop, up to 4 rounds]
       Junior reviewer asks questions (read-only, cannot edit files)
-      Senior accepts/rejects each
-      Refine + rerun checks if edits made
-      Stop when: no actionable questions / no edits made / round cap
+      Senior suppresses already-settled re-raises, then accepts/rejects each
+      Refine + rerun checks if substantive edits made
+      Stop when: no actionable questions / converged (no substantive progress) / round cap
   → Final summary (rounds, accept/partial/reject counts, themes, stop reason)
 ```
 
@@ -97,6 +97,6 @@ asymmetric-review/
 
 ## Limitations (v0)
 
-- Junior review can run up to 5 fresh rounds per ship, with at most 5 questions per round.
+- Junior review can run up to 4 fresh rounds per ship, with at most 5 questions per round, but stops earlier once a round produces no substantive progress (the cap is a backstop, not a target).
 - Check commands (test, lint, typecheck) are inferred from the repository; if the correct command is ambiguous, the skill skips the check rather than guessing.
 - Does not commit changes unless the user explicitly asks.
