@@ -48,7 +48,7 @@ Run each check as a separate command. Never use compound shell commands: no `&&`
 
 After checks run, inspect the changed file set again. If the repository uses git, run `git status --short` as a separate command to detect staged, unstaged, and untracked files. Treat routine generated artifacts from checks, such as `__pycache__/`, `.pytest_cache/`, coverage files, build output, and logs, as generated noise rather than implementation changes. Do not include generated noise in the junior payload or trivial-change decision unless it is directly relevant to the task. If generated artifacts remain in the working tree, mention them separately in the final summary.
 
-If the correct command is not obvious, say so and skip the check rather than running an unknown command.
+If the correct command is not obvious, say so and skip the check rather than running an unknown command. If a check command is blocked by permissions, record it as blocked, continue the workflow, and report the blocked check in the final summary.
 
 ## 4. Junior review loop
 
@@ -143,6 +143,8 @@ After verification is handled, append a one-line accept/reject summary (with the
 ## 5. Final response
 
 Before final response, if the repository uses git, run `git status --short` as a separate command, even if status was checked earlier. Use that status, not just `git diff`, to identify remaining untracked files and generated artifacts.
+
+Do not commit or push; leave all changes in the working tree for the user to review, unless the user explicitly asked for a commit.
 
 Summarize:
 - what was implemented or fixed,

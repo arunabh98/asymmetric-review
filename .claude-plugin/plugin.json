@@ -1,5 +1,6 @@
 {
   "name": "asymmetric-review",
+  "displayName": "Asymmetric Review",
   "description": "Implement, debug, refactor, or refine code using an asymmetric review loop before finalizing.",
   "version": "0.1.0",
   "author": {

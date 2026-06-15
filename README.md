@@ -1,102 +1,59 @@
 # Asymmetric Review
 
-A Claude Code plugin that runs a bounded asymmetric review loop: the main model implements, a read-only junior reviewer on `sonnet` asks assumption-revealing questions, and the main model adjudicates/refines for up to 4 rounds.
+A Claude Code plugin that has a second, weaker model review your code before you ship it.
 
-## How it works
+Runs entirely in your Claude Code session.
 
-```
-User request
-  → Implement code
-  → Run checks
-  → Fix new failures caused by this work, if any
-  → If change is trivial: skip junior review
-  → Otherwise [Loop, up to 4 rounds]
-      Junior reviewer asks questions (read-only, cannot edit files)
-      Senior suppresses already-settled re-raises, then accepts/rejects each
-      Refine + rerun checks if substantive edits made
-      Stop when: no actionable questions / converged (no substantive progress) / round cap
-  → Final summary (rounds, accept/partial/reject counts, themes, stop reason)
-```
+When a model writes code in one pass, it quietly makes choices it never examines (how to handle duplicate inputs, empty lists, odd edge cases) and never flags them. This plugin adds a check. After your main model (the "senior") implements a task, a cheaper, weaker "junior" model reads the change and asks plain, naive questions about it. Those questions tend to surface the assumptions the senior didn't notice it was making, and the senior has to answer each one with a fix or a reason. The reviewer being weaker is the point: it asks the obvious questions the implementer stopped seeing.
 
-The junior reviewer runs on `sonnet` with only `Read`, `Grep`, and `Glob` tools. It cannot modify files. Its role is to surface hidden assumptions, not to prescribe solutions.
-
-## Main session model
-
-Use Opus for the main session. The junior is pinned to `sonnet`, so a Sonnet main session collapses the asymmetry into Sonnet reviewing Sonnet.
-
-## Installation
-
-Install from the GitHub marketplace:
+## Install
 
 ```
 /plugin marketplace add arunabh98/asymmetric-review
 /plugin install asymmetric-review@asymmetric-review
 ```
 
-For local development, load the plugin by pointing Claude Code at this repository.
+Then, inside Claude Code:
 
-```bash
-# From this repository root:
-claude --plugin-dir .
-
-# From the parent directory:
-claude --plugin-dir ./asymmetric-review
+```
+/asymmetric-review:ship <your coding task>
 ```
 
 ## Usage
 
-Inside Claude Code, run:
-
 ```
 /asymmetric-review:ship implement user profile editing with tests
-```
-
-The `$ARGUMENTS` after `/asymmetric-review:ship` can be any coding task:
-
-```
 /asymmetric-review:ship fix the off-by-one error in pagination
 /asymmetric-review:ship refactor the auth middleware to use async/await
-/asymmetric-review:ship debug why the search endpoint returns 500 on empty query
-/asymmetric-review:ship refine my current uncommitted changes and add missing edge-case tests
+/asymmetric-review:ship refine my current uncommitted changes and add edge-case tests
 ```
 
-If you run `/asymmetric-review:ship` with no arguments, the skill will infer the task from recent conversation and state the inferred task before editing. In a fresh session, or whenever the task is not clear, it should ask instead of guessing.
+With no arguments, it infers the task from the recent conversation and states it before editing, or asks if the task isn't clear.
 
-## Operational notes
+## How it works
 
-The skill tells the model to run checks one at a time, without shell chaining or output truncation. If changed tests clearly use a specific runner or framework, the skill tries that direct check before generic alternatives.
+1. **Implement.** Your main model makes the change and runs the repo's tests, lint, and typecheck.
+2. **Review.** A fresh junior reviewer reads the change and asks up to 5 simple questions. It's pinned to a cheaper model (Sonnet) and is read-only: it can look, but it can't edit.
+3. **Answer.** Your main model answers every question: accept it and make the smallest useful fix (often a test), or reject it with a reason. Settled questions don't come back.
+4. **Repeat or stop.** It reviews again with fresh eyes, and stops as soon as a round turns up nothing new (up to 4 rounds). Trivial changes (pure docs or renames) skip review entirely.
+5. **Summarize.** You get a short report: what changed, what the checks said, and what each round accepted or rejected.
 
-In interactive Claude Code sessions, approve the relevant test/lint/typecheck commands when prompted. In non-interactive `-p` runs, provide appropriate Bash permissions up front if you expect checks to execute; otherwise the skill can still edit and review, but it will report that checks were blocked by permissions.
+It doesn't commit anything; you review the final diff.
 
-Check commands may create routine generated artifacts. The workflow uses `git status --short` in git repositories to detect untracked files and distinguish generated noise from implementation changes.
+## Use a strong main model
 
-## Verifying the plugin loaded
+Use Opus (or stronger) for your main session. The junior is always Sonnet, so if your main session is also Sonnet you lose the asymmetry: it's just Sonnet reviewing Sonnet.
 
-After launching Claude Code with `--plugin-dir`:
+## What I've seen
 
-- `/asymmetric-review:ship` should appear as a plugin skill (tab-complete or type it).
-- `/agents` should list `junior-assumption-reviewer`, typically referenced from the plugin as `asymmetric-review:junior-assumption-reviewer`.
-- `/reload-plugins` picks up edits to plugin files during development.
+In my own testing, the review earns its cost mainly when the first pass is wrong. In one run, the same model that shipped a money-losing bug on its own (silently dropping money from a bill split) caught and fixed that exact bug when run through the plugin. In another, where the first pass was already correct, it found no bugs but added edge-case tests and wrote down an assumption the code had left implicit (that it wasn't thread-safe).
 
-## Structure
+The pattern: **it raises the floor, not the ceiling.** When the first pass is wrong, it tends to catch it; when the first pass is already right, you're paying (a few times the cost) for deeper tests and written-down assumptions. Worth it for code you'll keep; skip it for throwaway scripts. These are observations from a few runs, not a benchmark.
 
-```
-asymmetric-review/
-  .claude-plugin/
-    plugin.json            # Plugin metadata
-    marketplace.json       # Marketplace catalog for GitHub installs
-  skills/
-    ship/
-      SKILL.md             # The /asymmetric-review:ship workflow
-  agents/
-    junior-assumption-reviewer.md   # Read-only junior reviewer subagent
-  .gitignore
-  LICENSE
-  README.md
-```
+## Local development
 
-## Limitations (v0)
+`claude --plugin-dir .` from the repo root (or `--plugin-dir ./asymmetric-review` from the parent). `/reload-plugins` picks up edits.
 
-- Junior review can run up to 4 fresh rounds per ship, with at most 5 questions per round, but stops earlier once a round produces no substantive progress (the cap is a backstop, not a target).
-- Check commands (test, lint, typecheck) are inferred from the repository; if the correct command is ambiguous, the skill skips the check rather than guessing.
-- Does not commit changes unless the user explicitly asks.
+---
+
+MIT · v0.1.0 · Arunabh Ghosh · https://github.com/arunabh98/asymmetric-review
