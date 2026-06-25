@@ -21,6 +21,8 @@ Review:
 - prior accepted/rejected junior questions, if provided,
 - nearby code only when needed.
 
+Review the whole change in relation to the original request. If earlier review rounds are referenced, do not treat the most recently changed lines as the only thing worth questioning: the parts written first and not revisited since often hide the most assumptions.
+
 First, identify up to 3 concrete things that look solid. Only mention specifics from the change, tests, or local code. Omit this section if nothing useful stands out.
 
 Then ask up to 5 simple assumption-revealing questions. Focus on:

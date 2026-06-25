@@ -44,7 +44,7 @@ Run relevant checks when obvious from the repository:
 - build,
 - or the nearest lightweight equivalent.
 
-Run each check as a separate command. Never use compound shell commands: no `&&`, `||`, `;`, pipes, shell redirection, command substitution, or fallback command lists. Do not post-process or truncate check output with `tail`, `head`, `grep`, `sed`, `tee`, or similar helpers. If a check command fails because the command is missing, the module path is wrong, or the repository uses a different test entrypoint, record that result and run the next candidate as a separate command. Keep each command's output distinguishable. Prefer commands documented by the repository or directly implied by the changed tests. If changed tests clearly use a specific runner or framework, run that direct check before trying generic alternatives.
+Run each check as a separate command. Never use compound shell commands: no `&&`, `||`, `;`, pipes, shell redirection, command substitution, or fallback command lists. Do not post-process or truncate check output with `tail`, `head`, `grep`, `sed`, `tee`, or similar helpers. If a check command fails because the command is missing, the module path is wrong, or the repository uses a different test entrypoint, record that result and run the next candidate as a separate command. Keep each command's output distinguishable. Prefer commands documented by the repository or directly implied by the changed tests. If changed tests clearly use a specific runner or framework, run that direct check before trying generic alternatives. A targeted or direct invocation is fine while iterating, but when the repository declares a canonical command for a check (a `test`, `lint`, or `typecheck` script, a Makefile target, or a command the project documents), run that declared command as written at least once rather than relying only on a hand-built equivalent; if the declared command itself fails or does not run, treat that as a real finding to fix or report, not something to route around with a different invocation.
 
 After checks run, inspect the changed file set again. If the repository uses git, run `git status --short` as a separate command to detect staged, unstaged, and untracked files. Treat routine generated artifacts from checks, such as `__pycache__/`, `.pytest_cache/`, coverage files, build output, and logs, as generated noise rather than implementation changes. Do not include generated noise in the junior payload or trivial-change decision unless it is directly relevant to the task. If generated artifacts remain in the working tree, mention them separately in the final summary.
 
@@ -73,6 +73,8 @@ Spawn a fresh `asymmetric-review:junior-assumption-reviewer` subagent (if the ru
 - the latest test/lint/typecheck output, plus a note for any carried-forward unrelated failures,
 - `prior_notes` (omit on round 1),
 - `settled_topics` with their proofs (omit on round 1).
+
+Each round, point the junior at the complete change set as it relates to the original request, not only the edits from the most recent round. Earlier rounds' fixes are part of the change and may be questioned, but they must not crowd out parts of the original change that have not yet been examined closely. The intent is fresh eyes on the whole change every round; re-examining settled ground is prevented by `settled_topics` and the 4c suppression, not by narrowing what the junior looks at.
 
 When passing `prior_notes`, use this shape:
 - `Round N: accepted M, partially accepted X, rejected Y. Accepted themes: ... Rejected topics: ...`
