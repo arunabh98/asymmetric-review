@@ -46,6 +46,8 @@ Run relevant checks when obvious from the repository:
 
 Run each check as a separate command. Never use compound shell commands: no `&&`, `||`, `;`, pipes, shell redirection, command substitution, or fallback command lists. Do not post-process or truncate check output with `tail`, `head`, `grep`, `sed`, `tee`, or similar helpers. If a check command fails because the command is missing, the module path is wrong, or the repository uses a different test entrypoint, record that result and run the next candidate as a separate command. Keep each command's output distinguishable. Prefer commands documented by the repository or directly implied by the changed tests. If changed tests clearly use a specific runner or framework, run that direct check before trying generic alternatives. A targeted or direct invocation is fine while iterating, but when the repository declares a canonical command for a check (a `test`, `lint`, or `typecheck` script, a Makefile target, or a command the project documents), run that declared command as written at least once rather than relying only on a hand-built equivalent; if the declared command itself fails or does not run, treat that as a real finding to fix or report, not something to route around with a different invocation.
 
+Prefer checks that exercise the changed behavior over ones that only prove the code is well-formed. A passing build, typecheck, or lint shows the change compiles, not that it does what it should, so do not treat a green build or lint as evidence the change works. Where it is cheap, exercise the changed path directly: run the test that covers it, run the command or script and read the output, or run the affected case in the app. If the change has no check that touches its actual behavior and one is cheap to add, add it. If the behavior genuinely cannot be exercised here (no runtime, no key, no harness), verify it statically as best you can and record it as unverified rather than reporting it as done.
+
 After checks run, inspect the changed file set again. If the repository uses git, run `git status --short` as a separate command to detect staged, unstaged, and untracked files. Treat routine generated artifacts from checks, such as `__pycache__/`, `.pytest_cache/`, coverage files, build output, and logs, as generated noise rather than implementation changes. Do not include generated noise in the junior payload or trivial-change decision unless it is directly relevant to the task. If generated artifacts remain in the working tree, mention them separately in the final summary.
 
 If the correct command is not obvious, say so and skip the check rather than running an unknown command. If a check command is blocked by permissions, record it as blocked, continue the workflow, and report the blocked check in the final summary.
@@ -102,6 +104,10 @@ For each junior question:
 - make the smallest useful change when accepting,
 - add or update tests when appropriate.
 
+An accepted fix should resolve the whole class of issue it belongs to, not just the single instance the junior raised. When the same kind of problem could plausibly exist elsewhere in this change, sweep the rest of the change set for other instances and fix them in the same round, instead of leaving siblings for later rounds to surface one at a time. This is part of making the smallest useful change, not a departure from it: a fix that resolves only the reported instance can leave the same risk live elsewhere. Keep the sweep to the class at hand and to code this change touches, not unrelated cleanup or new scope. A concern already accepted in an earlier round is a strong signal to sweep it now rather than wait for the next one to appear.
+
+When you accept a fix, confirm it actually resolves the concern by exercising the changed behavior, for example running the affected path or a check that would fail without the fix, not just re-running a build or lint that does not touch it. If you cannot exercise it here, mark the fix unverified rather than treating it as done.
+
 Reject feedback that is:
 - irrelevant,
 - already handled,
@@ -150,7 +156,7 @@ Do not commit or push; leave all changes in the working tree for the user to rev
 
 Summarize:
 - what was implemented or fixed,
-- what checks were run in the final state and whether they passed (including any carried-forward unrelated failures),
+- what checks were run in the final state and whether they passed (including any carried-forward unrelated failures), and flag anything that was only checked statically (it compiles or lints but was not actually exercised) as unverified,
 - per junior round: accepted / partially accepted / rejected / suppressed-repeat counts plus short themes for accepted items (noting which were substantive vs cosmetic), not the full junior text. Example: `Round 1: accepted 2 (substantive), partially accepted 1, rejected 1. Accepted themes: empty-input handling, malformed-date test. Round 2: no actionable questions.`
 - which stop condition fired: "no actionable questions" / "converged — no edits" / "converged — cosmetic only" / "converged — all reframes" / "trivial change skip" / "hit round cap" (for the cap, include the `max_rounds` value and note whether latest edits were not re-reviewed),
 - any generated artifacts from checks that remain in the working tree,
