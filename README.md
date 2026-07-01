@@ -56,4 +56,4 @@ The pattern: **it raises the floor, not the ceiling.** When the first pass is wr
 
 ---
 
-MIT · v0.1.0 · Arunabh Ghosh · https://github.com/arunabh98/asymmetric-review
+MIT · v0.2.0 · Arunabh Ghosh · https://github.com/arunabh98/asymmetric-review
